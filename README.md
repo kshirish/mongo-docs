@@ -195,15 +195,69 @@ db.restaurants.remove( {} )
 	
 db.restaurants.find( { "grades.score": { $gt: 30 } } )	
 
+db.inventory.find( { status: { $in: [ "A", "D" ] } } )
+
+db.inventory.find( { qty: { $nin: [ 5, 15 ] } } )
+
+db.inventory.find( { "carrier.state": { $ne: "NY" } } )
+
 # Logical AND
 db.restaurants.find( { "cuisine": "Italian", "address.zipcode": "10075" } )	
 
-# Logical OR
-db.restaurants.find(
-   { $or: [ { "cuisine": "Italian" }, { "address.zipcode": "10075" } ] }
-)
+db.inventory.find( {
+    $and : [
+        { $or : [ { price : 0.99 }, { price : 1.99 } ] },
+        { $or : [ { sale : true }, { qty : { $lt : 20 } } ] }
+    ]
+} )
 
-db.inventory.find( { status: { $in: [ "A", "D" ] } } )
+# Logical OR
+db.restaurants.find( {
+   $or: [ 
+   		{ "cuisine": "Italian" }, { "address.zipcode": "10075" } 
+   	] 
+} )
+
+# Expression: where spent field exceeds budget field
+db.monthlyBudget.find( { $expr: { $gt: [ "$spent" , "$budget" ] } } )
+
+# $where using javascript expressions
+db.monthlyBudget.find( { $where: "this.spent > this.budget" } );
+db.monthlyBudget.find( { $where: function() { return this.spent > this.budget } } );
+
+# $elemMatch: matches documents that contain an array field with at least one element that matches all the specified query criteria
+# { _id: 1, results: [ 82, 85, 88 ] }
+# { _id: 2, results: [ 75, 88, 89 ] }
+
+db.scores.find( {
+   results: { 
+   		$elemMatch: { $gte: 80, $lt: 85 } 
+   }
+} )
+
+# For data:
+# { _id: 1, results: [ { product: "abc", score: 10 }, { product: "xyz", score: 5 } ] }
+# { _id: 2, results: [ { product: "abc", score: 8 }, { product: "xyz", score: 7 } ] }
+# { _id: 3, results: [ { product: "abc", score: 7 }, { product: "xyz", score: 8 } ] }
+
+db.scores.find({ $and: [ { "results.product": "abc" },  { "results.score": { $eq: 7 } }  ] })
+
+# produces
+# { "_id" : 2, "results" : [ { "product" : "abc", "score" : 8 }, { "product" : "xyz", "score" : 7 } ] }
+# { "_id" : 3, "results" : [ { "product" : "abc", "score" : 7 }, { "product" : "xyz", "score" : 8 } ] }
+
+#while
+
+db.products.find( { 
+	results: {
+		$elemMatch: { product: "abc", score: { $eq: 7 } }
+	} 
+} )
+
+# produces
+# { "_id" : 3, "results" : [ { "product" : "abc", "score" : 7 }, { "product" : "xyz", "score" : 8 } ] }
+
+# The results differ because `$elemMatch` works specifically for an array while a normal query is for any type.
 ```
 
 ## Bulk Write 
