@@ -296,3 +296,28 @@ db.characters.bulkWrite([
 ## Data Aggregation
 
 ## Indexes
+
+```sh
+# {
+#  "_id": ObjectId("570c04a4ad233577f97dc459"),
+#  "score": 1034,
+#  "location": { state: "NY", city: "New York" }
+#}
+
+# Creates an ascending index on score field
+db.records.createIndex( { score: 1 } )
+```
+
+### Compound Indexes
+
+```json
+{ "item": 1, "location": 1, "stock": 1 }
+```
+
+Note: _Here, either of these 3 fields at most one can be an array._
+
+MongoDB can use above index for queries on the following fields:
+
+* the _item_ field,
+* the _item_ field and the _location_ field,
+* the _item_ field and the _location_ field and the _stock_ field.
